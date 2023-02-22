@@ -45,7 +45,7 @@ if __name__ == "__main__":
     """
         return name, total number of tasks & completed tasks
     """
-    EMPLOYEE_NAME = employee_name
+    EMPLOYEE_NAME = employee_name: ok
     TOTAL_NUMBER_OF_TASKS = len(tasks)
     NUMBER_OF_DONE_TASKS = len([k for k, v in tasks.items() if v is True])
     print("Employee {} is done with tasks({}/{}):".format(
