@@ -3,53 +3,36 @@
     a Python script that, using this REST API, for a given employee ID,
     returns information about his/her TODO list progress
 """
-import json
 import requests
-from sys import argv
+import sys
 
+# Check if the script is being passed an employee ID
+if len(sys.argv) < 2:
+    print("Please provide an employee ID as an argument")
+    sys.exit(1)
 
-if __name__ == "__main__":
-    """
-        request the user's info by employee ID
-    """
-    request_employee = requests.get(
-        'https://jsonplaceholder.typicode.com/users/{}/'.format(argv[1]))
-    """
-        json to dictionary
-    """
-    employee = json.loads(request_employee.text)
-    """
-        get employee name
-    """
-    employee_name = employee.get("name")
+# Get the employee ID from the command line argument
+employee_id = sys.argv[1]
 
-    """
-        Make a request to the API to get the employee's TODO list
-    """
-    request_todos = requests.get(
-        'https://jsonplaceholder.typicode.com/users/{}/todos'.format(argv[1]))
-    """
-        dictionary to store task status
-    """
-    tasks = {}
-    """
-        convert json to list of dictionaries
-    """
-    employee_todos = json.loads(request_todos.text)
-    """
-        loop through dictionary & get completed tasks
-    """
-    for dictionary in employee_todos:
-        tasks.update({dictionary.get("title"): dictionary.get("completed")})
+# Make a request to the API to get the employee's TODO list
+response = requests.get(f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}")
 
-    """
-        return name, total number of tasks & completed tasks
-    """
-    EMPLOYEE_NAME = employee_name
-    TOTAL_NUMBER_OF_TASKS = len(tasks)
-    NUMBER_OF_DONE_TASKS = len([k for k, v in tasks.items() if v is True])
-    print("Employee {} is done with tasks({}/{}):".format(
-        EMPLOYEE_NAME, NUMBER_OF_DONE_TASKS, TOTAL_NUMBER_OF_TASKS))
-    for k, v in tasks.items():
-        if v is True:
-            print("\t {}".format(k))
+# Check if the response was successful
+if response.status_code != 200:
+    print(f"Error: {response.status_code}")
+    sys.exit(1)
+
+# Parse the JSON response
+todo_list = response.json()
+
+# Count the number of completed tasks
+completed_tasks = [task for task in todo_list if task['completed']]
+num_completed_tasks = len(completed_tasks)
+
+# Format and print the output
+employee_name = todo_list[0]['name']
+total_num_tasks = len(todo_list)
+print(f"Employee {employee_name} is done with {num_completed_tasks}/{total_num_tasks} tasks:")
+
+for task in completed_tasks:
+    print(f"\t{task['title']}")
